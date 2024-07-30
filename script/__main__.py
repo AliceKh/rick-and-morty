@@ -1,47 +1,14 @@
 import csv
+import urllib.parse
 from pathlib import Path
+from typing import Iterator, Any
 
 import requests
 
-
-def query_rest_api(url: str) -> dict[str, str]:
-    """
-    queries the rest api
-    :raises:
-        :exception Exception url is incorrect
-    """
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise Exception(f"Query failed to run with a {response.status_code}. {response.text}")
+Character = dict[str, Any]
 
 
-def filter_data(data: dict[str, str], filter_criteria: dict[str, str]) -> dict[str, str]:
-    filtered_data = []
-    for item in data:
-        match = True
-        for key, value in filter_criteria.items():
-            if item.get(key) != value:
-                match = False
-                break
-        if match:
-            filtered_data.append(item)
-    return filtered_data
-
-
-def format_data(data: dict[str, str], location_name: str) -> list[dict[str, str]]:
-    formatted_data = []
-    for item in data:
-        formatted_data.append({
-            'Name': item['name'],
-            'Location': location_name,
-            'Image': item['image']
-        })
-    return formatted_data
-
-
-def save_to_csv(data: list[dict[str, str]], csv_file: Path):
+def save_to_csv(data: list[Character], csv_file: Path):
     """
     Saves the given `data` to a CSV file.
     """
@@ -53,52 +20,60 @@ def save_to_csv(data: list[dict[str, str]], csv_file: Path):
             dict_writer.writerows(data)
 
 
-def get_location_info(location_name: str) -> list[str]:
+def get_characters_by_criteria(criteria: dict[str, str]) -> Iterator[Character]:
     """
-    Queries API by `location_name` to get residents URLs
-
+    Yields characters that match criteria
     :raises:
-        :exception Exception location was not found
+        :exception: Exception if there are no matches
     """
-    url = f'https://rickandmortyapi.com/api/location/?name={location_name}'
-    result = query_rest_api(url)
-    locations = result['results']
-    if locations:
-        residents_urls = locations[0]['residents']
-        return residents_urls
-    else:
-        raise Exception(f"No location found with name {location_name}")
+    url = 'https://rickandmortyapi.com/api/character'
+    url = f'{url}/?{urllib.parse.urlencode(criteria)}'
+    response_json = {'info': {'next': url}}
+    while response_json['info']['next']:
+        response = requests.get(response_json['info']['next'])
+        if response.status_code == 200:
+            response_json = response.json()
+            for character in response_json['results']:
+                yield character
+        else:
+            raise Exception(f"Query failed to run with a {response.status_code}. {response.text}")
 
 
-def get_residents_details(residents_urls: list[str]) -> dict[str, str]:
+def filter_by_origin(characters: Iterator[Character], origin: str) -> Iterator[Character]:
     """
-    Queries URL for resident details
+    Yields characters whose origin includes the given value
     """
-    residents_ids = ','.join(url.split('/')[-1] for url in residents_urls)
-    url = f'https://rickandmortyapi.com/api/character/{residents_ids}'
-    return query_rest_api(url)
+    for character in characters:
+        if origin in character['origin']['name']:
+            yield character
 
 
-def main(location_name: str, filter_criteria: dict[str, str]):
+def format_characters(characters: Iterator[Character]) -> Iterator[Character]:
+    """
+    Formats the character to have name, location and image
+    """
+    for character in characters:
+        yield {
+            'Name': character['name'],
+            'Location': character['location']['name'],
+            'Image': character['image']
+        }
+
+
+def main(origin_name: str, filter_criteria: dict[str, str]):
     try:
-        residents_urls = get_location_info(location_name)
-        residents_data = get_residents_details(residents_urls)
-        filtered_data = filter_data(residents_data, filter_criteria)
-        formatted_data = format_data(filtered_data, location_name)
-        save_to_csv(formatted_data, Path('data.csv'))
-
-        print("Data has been successfully filtered, formatted, and saved to 'data.csv'")
+        save_to_csv(list(format_characters(filter_by_origin(get_characters_by_criteria(filter_criteria), origin_name))),
+                    Path('data.csv'))
 
     except Exception as e:
         print(f"An error occurred: {e}")
 
 
 if __name__ == "__main__":
-    # Variables
-    location_name = "Earth (C-137)"
+    origin_name = "Earth"
     filter_criteria = {
         'species': "Human",
-        'status': "Alive"
+        'status': "Alive",
     }
 
-    main(location_name, filter_criteria)
+    main(origin_name, filter_criteria)
