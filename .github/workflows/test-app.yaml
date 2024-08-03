@@ -24,5 +24,5 @@ jobs:
       - name: Test service URLs
         run: |
           curl -L --resolve "rickandmorty.elementor:80:$( minikube ip )" -i http://rickandmorty.elementor/
-          curl --resolve "rickandmorty.elementor:80:$( minikube ip )" \
+          curl -s --resolve "rickandmorty.elementor:80:$( minikube ip )" \
           -i http://rickandmorty.elementor/search/earth?status=alive&species=human
