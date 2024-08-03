@@ -1,0 +1,27 @@
+name: GitHub Actions Demo
+on: [push]
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: AliceKh/rick-and-morty
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+      - name: Try the cluster
+        run: kubectl get pods -A
+      - name: Build image
+        run: |
+          docker build -t alicekh/rickandmorty:0.1.0 api/.
+          docker push alicekh/rickandmorty:0.1.0
+      - name: Deploy to minikube
+        run:
+          kubectl apply -f api/yamls
+          kubectl wait --for=condition=ready pod -l app=rickandmorty
+      - name: Test service URLs
+        run: |
+          minikube service list
+          minikube service rickandmorty --url
+          echo "------------------opening the service------------------"
+          curl $(minikube service rickandmorty --url)     
