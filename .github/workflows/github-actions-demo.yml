@@ -17,7 +17,7 @@ jobs:
         run: |
           minikube image build -t alicekh/rickandmorty:0.1.0 api/.
       - name: Deploy to minikube
-        run:
+        run: |
           kubectl apply -f api/yamls
           kubectl wait --for=condition=ready pod -l app=rickandmorty
       - name: Test service URLs
