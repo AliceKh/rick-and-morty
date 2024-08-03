@@ -20,8 +20,9 @@ jobs:
         run: |
           helm install test api/helm/rickandmorty
           kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=rickandmorty
+          sleep 5 # waiting for ingress controller to acknowledge the ingress object
       - name: Test service URLs
         run: |
           curl -L --resolve "rickandmorty.elementor:80:$( minikube ip )" -i http://rickandmorty.elementor/
           curl --resolve "rickandmorty.elementor:80:$( minikube ip )" \
-          -i http://rickandmorty.elementor/search/earth?status=alive&species=human -H 'accept: application/json'
+          -i http://rickandmorty.elementor/search/earth?status=alive&species=human
