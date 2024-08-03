@@ -72,20 +72,37 @@ The REST API documentation is available at `http://localhost:8000/docs`.
 - `gender` (string, query): Filter by gender (Available values: `female`, `male`, `genderless`, `unknown`).
 
 # K8S
-## Prerequisites 
+
+## Prerequisites
+
 - Log in to an existing cluster using kubectl
 - Ingress Controller present on the cluster
 
-## Installation 
+## Installation
+
 Apply all the manifests:
+
 ```shell
 kubectl apply -f yamls
 ```
 
 This will create:
+
 - Deployment - running alicekh/rickandmorty:0.1.0
 - Service
 - Ingress - hostname - rickandmorty.elementor
 
-> Depending on your network configuration (to be able to resolve the hostname to the Ingress Controller) you'll might need to change the Ingress hostname 
+> Depending on your network configuration (to be able to resolve the hostname to the Ingress Controller) you'll might
+> need to change the Ingress hostname
 
+# Helm
+
+## Configuration
+
+Edit values within `values.yaml` before deploying the Chart
+
+## Installation
+
+```shell
+helm install [release-name] helm/rickandmorty/ 
+```
