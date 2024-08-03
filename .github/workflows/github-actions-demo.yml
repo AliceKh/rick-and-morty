@@ -25,4 +25,6 @@ jobs:
           minikube service list
           minikube service rickandmorty --url
           echo "------------------opening the service------------------"
-          curl $(minikube service rickandmorty --url)     
+          curl -L --resolve "rickandmorty.elementor:80:$( minikube ip )" -i http://rickandmorty.elementor
+          
+
