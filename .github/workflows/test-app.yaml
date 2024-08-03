@@ -1,0 +1,28 @@
+name: GitHub Actions Demo
+on: [push]
+jobs:
+  Test-App:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: AliceKh/rick-and-morty
+      - name: Start minikube
+        uses: medyagh/setup-minikube@latest
+      - name: Try the cluster
+        run: kubectl get pods -A
+      - name: Enable Ingress
+        run: minikube addons enable ingress
+      - name: Build image
+        run: |
+          minikube image build -t alicekh/rickandmorty:0.1.0 api/.
+      - name: Deploy to minikube
+        run: |
+          helm install test api/helm/rickandmorty
+          kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=rickandmorty
+          sleep 5 # waiting for ingress controller to acknowledge the ingress object
+      - name: Test service URLs
+        run: |
+          curl -L --resolve "rickandmorty.elementor:80:$( minikube ip )" -i http://rickandmorty.elementor/
+          curl -s --resolve "rickandmorty.elementor:80:$( minikube ip )" \
+          -i http://rickandmorty.elementor/search/earth?status=alive&species=human
