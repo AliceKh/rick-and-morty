@@ -1,7 +1,7 @@
 name: GitHub Actions Demo
 on: [push]
 jobs:
-  Explore-GitHub-Actions:
+  Test-App:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,4 +25,6 @@ jobs:
           minikube service list
           minikube service rickandmorty --url
           echo "------------------opening the service------------------"
-          curl --resolve "rickandmorty.elementor:80:$( minikube ip )" -i http://rickandmorty.elementor/search/earth?status=alive&species=human
+          curl -L --resolve "rickandmorty.elementor:80:$( minikube ip )" -i http://rickandmorty.elementor/
+          curl --resolve "rickandmorty.elementor:80:$( minikube ip )" \
+          -i http://rickandmorty.elementor/search/earth?status=alive&species=human -H 'accept: application/json'
