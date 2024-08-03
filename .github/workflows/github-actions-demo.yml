@@ -15,7 +15,7 @@ jobs:
         run: minikube addons enable ingress
       - name: Build image
         run: |
-          docker build -t local/rickandmorty:0.1.0 api/.
+          minikube image build -t alicekh/rickandmorty:0.1.0 api/.
       - name: Deploy to minikube
         run:
           kubectl apply -f api/yamls
