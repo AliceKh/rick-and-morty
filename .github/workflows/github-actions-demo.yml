@@ -11,10 +11,11 @@ jobs:
         uses: medyagh/setup-minikube@latest
       - name: Try the cluster
         run: kubectl get pods -A
+      - name: enable Ingress
+        run: minikube addons enable ingress
       - name: Build image
         run: |
-          docker build -t alicekh/rickandmorty:0.1.0 api/.
-          docker push alicekh/rickandmorty:0.1.0
+          docker build -t local/rickandmorty:0.1.0 api/.
       - name: Deploy to minikube
         run:
           kubectl apply -f api/yamls
