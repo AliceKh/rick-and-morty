@@ -1,5 +1,7 @@
 FROM python:3.9
 
+EXPOSE 8000
+
 WORKDIR /app
 
 COPY ./requirements.txt ./requirements.txt
@@ -8,6 +10,7 @@ RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
 COPY . .
 
-EXPOSE 80
+HEALTHCHECK CMD curl -f http://localhost:8000/healthcheck || exit 1
 
-CMD ["fastapi", "run", "main.py", "--port", "80"]
+ENTRYPOINT ["fastapi"]
+CMD ["run", "main.py", "--port", "8000"]
