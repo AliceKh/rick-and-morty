@@ -11,20 +11,17 @@ jobs:
         uses: medyagh/setup-minikube@latest
       - name: Try the cluster
         run: kubectl get pods -A
-      - name: enable Ingress
+      - name: Enable Ingress
         run: minikube addons enable ingress
       - name: Build image
         run: |
           minikube image build -t alicekh/rickandmorty:0.1.0 api/.
       - name: Deploy to minikube
         run: |
-          kubectl apply -f api/yamls
+          helm install test api/helm/rickandmorty
           kubectl wait --for=condition=ready pod -l app=rickandmorty
       - name: Test service URLs
         run: |
-          minikube service list
-          minikube service rickandmorty --url
-          echo "------------------opening the service------------------"
           curl -L --resolve "rickandmorty.elementor:80:$( minikube ip )" -i http://rickandmorty.elementor/
           curl --resolve "rickandmorty.elementor:80:$( minikube ip )" \
           -i http://rickandmorty.elementor/search/earth?status=alive&species=human -H 'accept: application/json'
